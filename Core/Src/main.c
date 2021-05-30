@@ -38,6 +38,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define TP_CHECK(x0,y0,x1,y1) tp_dev.x[0] > x0 && tp_dev.y[0] > y0 && tp_dev.x[0] < x1 && tp_dev.y[0] < y1
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -59,7 +60,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+extern uint16_t TP_PRES_TIME;
 /* USER CODE END 0 */
 
 /**
@@ -96,6 +97,9 @@ int main(void)
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   delay_init(168);
+  HAL_DAC_Start(&hdac,DAC1_CHANNEL_1);
+  HAL_TIM_Base_Start_IT(&htim3);
+  HAL_TIM_Base_Start_IT(&htim7);
   LCD_Init();
   tp_dev.init();
 
@@ -115,6 +119,28 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
+	tp_dev.scan(0);
+	if(tp_dev.sta & TP_PRES_DOWN)
+	{
+
+	  if(TP_PRES_TIME == 0 || (TP_PRES_TIME > 200 && TP_PRES_TIME%20 == 0))
+	  {
+		tp_dev.sta |= TP_PRES_FACK;		//标记已经开始响应第一次触碰事件
+		DAC->DHR12R1 = 4095;
+//        if(TP_CHECK(28,40,48,56)){
+//          DAC_FRE = DAC_FRE==1?1:DAC_FRE-1;
+//        }
+
+	  }
+	}
+	else
+	{
+	  //if(tp_dev.sta & TP_PRES_FACK){}
+	  TP_PRES_TIME = 0;
+	  tp_dev.sta  &= ~TP_PRES_FACK;
+	  DAC->DHR12R1 = 0;
+	}
   }
   /* USER CODE END 3 */
 }
