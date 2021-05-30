@@ -82,6 +82,8 @@ void Error_Handler(void);
 #define DOUT_GPIO_Port GPIOB
 #define TDIN_Pin GPIO_PIN_11
 #define TDIN_GPIO_Port GPIOF
+#define W25Q128_CS_Pin GPIO_PIN_14
+#define W25Q128_CS_GPIO_Port GPIOB
 #define LCD_BL_Pin GPIO_PIN_15
 #define LCD_BL_GPIO_Port GPIOB
 #define IIC_SCL_Pin GPIO_PIN_8

@@ -20,6 +20,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "dac.h"
+#include "spi.h"
 #include "tim.h"
 #include "gpio.h"
 #include "fsmc.h"
@@ -28,7 +29,9 @@
 /* USER CODE BEGIN Includes */
 #include "base.h"
 #include "lcd.h"
+#include "text.h"
 #include "touch.h"
+#include "w25qxx.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -95,12 +98,15 @@ int main(void)
   MX_DAC_Init();
   MX_TIM7_Init();
   MX_TIM3_Init();
+  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
   delay_init(168);
   HAL_DAC_Start(&hdac,DAC1_CHANNEL_1);
   HAL_TIM_Base_Start_IT(&htim3);
   HAL_TIM_Base_Start_IT(&htim7);
+  W25QXX_Init();
   LCD_Init();
+  font_init();
   tp_dev.init();
 
   POINT_COLOR=RED;
@@ -109,6 +115,7 @@ int main(void)
   LCD_ShowString(30,90,200,16,16,(uint8_t *)"ATOM@ALIENTEK");
   LCD_ShowString(30,110,200,16,16,(uint8_t *)"The First Test");
   LCD_ShowString(30,130,200,12,12,(uint8_t *)"2021/4/8");
+  Show_Str_Mid(30, 150, "ª∆∫”≈Ì≈£±∆£°", 16, 30);
 
   /* USER CODE END 2 */
 
