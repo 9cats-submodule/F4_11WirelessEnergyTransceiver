@@ -104,11 +104,10 @@ int main(void)
   MX_DAC_Init();
   MX_TIM7_Init();
   MX_SPI1_Init();
-  MX_TIM2_Init();
+  MX_TIM8_Init();
   /* USER CODE BEGIN 2 */
   delay_init(168);
   HAL_DAC_Start(&hdac,DAC1_CHANNEL_1);
-  HAL_TIM_Base_Start_IT(&htim2);
   HAL_TIM_Base_Start_IT(&htim7);
   W25QXX_Init();
   LCD_Init();
@@ -123,9 +122,10 @@ int main(void)
   P_ARR = ARR;
 	
 	delay_ms(10);
-	HAL_TIM_Base_DeInit(&htim2);
-	htim2.Init.Period = ARR;
-	HAL_TIM_Base_Init(&htim2);
+	HAL_TIM_Base_DeInit(&htim8);
+	htim8.Init.Period = ARR;
+	HAL_TIM_Base_Init(&htim8);
+  HAL_TIM_Base_Start_IT(&htim8);
 
   POINT_COLOR=RED;
 
@@ -218,9 +218,10 @@ int main(void)
 				LCD_ShowNum(88,  80, 84000000/ARR/1000, 3, 16);
 				LCD_ShowNum(120, 80, 84000000/ARR%1000, 3, 16);
 				W25QXX_Write((u8 *)(&ARR),0x0000f010,4);
-				__HAL_TIM_DISABLE(&htim2);
-				htim2.Instance->ARR = ARR;
-				__HAL_TIM_ENABLE(&htim2);
+	      HAL_TIM_Base_DeInit(&htim8);
+	      htim8.Init.Period = ARR;
+	      HAL_TIM_Base_Init(&htim8);
+				HAL_TIM_Base_Start_IT(&htim8);
 	    }
 	  }
   }
