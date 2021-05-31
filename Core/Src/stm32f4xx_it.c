@@ -56,6 +56,8 @@
 uint16_t TP_PRES_TIME = 0;
 uint16_t Amplitude = 0;
 uint32_t ARR = 0;
+uint8_t TP_PRES_FACK = 0;
+uint8_t TP_PRES_EVET = 0;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -224,11 +226,15 @@ void TIM2_IRQHandler(void)
 void TIM7_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM7_IRQn 0 */
-
+  
   /* USER CODE END TIM7_IRQn 0 */
   HAL_TIM_IRQHandler(&htim7);
   /* USER CODE BEGIN TIM7_IRQn 1 */
-  if(tp_dev.sta & TP_PRES_FACK) TP_PRES_TIME++;
+  if(TP_PRES_FACK)
+  {
+		TP_PRES_TIME++;
+    TP_PRES_EVET=0;
+  }
   /* USER CODE END TIM7_IRQn 1 */
 }
 

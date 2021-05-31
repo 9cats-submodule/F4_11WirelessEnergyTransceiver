@@ -66,6 +66,8 @@ void SystemClock_Config(void);
 extern uint16_t TP_PRES_TIME;
 extern uint16_t Amplitude;
 extern uint32_t ARR;
+extern uint8_t TP_PRES_FACK;
+extern uint8_t TP_PRES_EVET;
 /* USER CODE END 0 */
 
 /**
@@ -113,10 +115,17 @@ int main(void)
   font_init();
   tp_dev.init();
 
-  Amplitude = 2023;
-  ARR= 944;
+	W25QXX_Read((u8 *)(&Amplitude),0x0000f000,2);
+  W25QXX_Read((u8 *)(&ARR),0x0000f010,4);
+	//Amplitude = 1000;
+	//ARR = 680;
   P_Amplitude = Amplitude;
   P_ARR = ARR;
+	
+	delay_ms(10);
+	HAL_TIM_Base_DeInit(&htim2);
+	htim2.Init.Period = ARR;
+	HAL_TIM_Base_Init(&htim2);
 
   POINT_COLOR=RED;
 
@@ -130,7 +139,7 @@ int main(void)
 
   LCD_ShowNum(88,  80, 84000000/ARR/1000, 3, 16);
   LCD_ShowNum(120, 80, 84000000/ARR%1000, 3, 16);
-  LCD_ShowNum(108, 100, Amplitude*3300/4096, 3, 16);
+  LCD_ShowNum(108, 100, Amplitude*3300/4096, 4, 16);
   LCD_ShowNum(150, 140, ARR, 4, 16);
   LCD_ShowNum(150, 180, Amplitude, 4, 16);
 
@@ -147,7 +156,7 @@ int main(void)
   LCD_Fill(192,   ct, 212, ct+16, GRAY);
   LCD_Fill(196, ct+8, 208,  ct+9, RED);
   LCD_Fill(202, ct+4, 203, ct+12, RED);
-/* USER CODE END 2 */
+  /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -157,55 +166,63 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-	tp_dev.scan(0);
-	if(tp_dev.sta & TP_PRES_DOWN)
-	{
-//		HAL_TIM_Base_DeInit
-//		HAL_TIM_Base_MspDeInit
-	  if(TP_PRES_TIME == 0 || (TP_PRES_TIME > 200 && TP_PRES_TIME%20 == 0))
-	  {
-		tp_dev.sta |= TP_PRES_FACK;		//标记已经开始响应第一次触碰事件
 
-		if(TP_CHECK(28,140,48,156))
-		{
-		  ARR = ARR<=50?ARR:ARR-1;
-		  LCD_ShowNum(150, 140, ARR, 4, 16);
-		}
-		if(TP_CHECK(192,140,212,156))
-		{
-		  ARR = ARR>=1000?ARR:ARR+1;
-		  LCD_ShowNum(150, 140, ARR, 4, 16);
-		}
-		if(TP_CHECK(28,180,48,196))
-		{
-		  Amplitude = Amplitude==0?0:Amplitude-1;
-		  LCD_ShowNum(150, 180, Amplitude, 4, 16);
-		}
-		if(TP_CHECK(192,180,212,156))
-		{
-		  Amplitude = Amplitude==4095?4095:Amplitude+1;
-		  LCD_ShowNum(150, 180, Amplitude, 4, 16);
-		}
-
-	  }
-	}
-	else
-	{
-	  //if(tp_dev.sta & TP_PRES_FACK){}
-	  TP_PRES_TIME = 0;
-	  tp_dev.sta  &= ~TP_PRES_FACK;
-
-	  if(P_Amplitude != Amplitude)
+	  tp_dev.scan(0);
+	  if(tp_dev.sta & TP_PRES_DOWN)
 	  {
-		P_Amplitude = Amplitude;
-		LCD_ShowNum(150, 180, Amplitude, 4, 16);
+	    if(TP_PRES_TIME == 0 || (TP_PRES_TIME > 200 && TP_PRES_TIME%20 == 0))
+	    {
+	  		if(!TP_PRES_EVET) //如果该tick没有触屏事件
+	  		{
+          TP_PRES_EVET = 1;
+          TP_PRES_FACK = 1;
+	  		  if(TP_CHECK(28,140,48,156))
+	  		  {
+	  		  	ARR = ARR<=50?ARR:ARR-1;
+	  		  	LCD_ShowNum(150, 140, ARR, 4, 16);
+	  		  }
+	  		  if(TP_CHECK(192,140,212,156))
+	  		  {
+	  		  	ARR = ARR>=1000?ARR:ARR+1;
+	  		  	LCD_ShowNum(150, 140, ARR, 4, 16);
+	  		  }
+	  		  if(TP_CHECK(28,180,48,196))
+	  		  {
+	  		  	Amplitude = Amplitude==0?0:Amplitude-1;
+	  		  	LCD_ShowNum(150, 180, Amplitude, 4, 16);
+	  		  }
+	  		  if(TP_CHECK(192,180,212,196))
+	  		  {
+	  		  	Amplitude = Amplitude==4095?4095:Amplitude+1;
+	  		  	LCD_ShowNum(150, 180, Amplitude, 4, 16);
+	  		  }
+	  		}
+	    }
 	  }
-	  if(P_ARR != ARR)
+	  else
 	  {
-		P_ARR = ARR;
-		LCD_ShowNum(150, 140, ARR, 4, 16);
+	    //if(tp_dev.sta & TP_PRES_FACK){}
+	    TP_PRES_TIME = 0;
+      TP_PRES_FACK = 0;
+	  	TP_PRES_EVET = 0;
+
+	    if(P_Amplitude != Amplitude)
+	    {
+	    	P_Amplitude = Amplitude;
+				LCD_ShowNum(108, 100, Amplitude*3300/4096, 4, 16);
+				W25QXX_Write((u8 *)(&Amplitude),0x0000f000,2);
+	    }
+	    if(P_ARR != ARR)
+	    {
+	  	  P_ARR = ARR;
+				LCD_ShowNum(88,  80, 84000000/ARR/1000, 3, 16);
+				LCD_ShowNum(120, 80, 84000000/ARR%1000, 3, 16);
+				W25QXX_Write((u8 *)(&ARR),0x0000f010,4);
+				__HAL_TIM_DISABLE(&htim2);
+				htim2.Instance->ARR = ARR;
+				__HAL_TIM_ENABLE(&htim2);
+	    }
 	  }
-	}
   }
   /* USER CODE END 3 */
 }

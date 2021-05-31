@@ -24,7 +24,6 @@
 
 #define TP_PRES_DOWN 0x80  //触屏被按下
 #define TP_CATH_PRES 0x40  //有按键按下了
-#define TP_PRES_FACK 0x20  //触碰初次被响应
 #define CT_MAX_TOUCH  5    //电容屏支持的点数,固定为5点
 #define OTT_MAX_TOUCH  5   //电容屏支持的点数,固定为5点
 
