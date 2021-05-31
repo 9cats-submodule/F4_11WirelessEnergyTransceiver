@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F407xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../Drivers/F4_LCD_Driver/Inc;../Drivers/F4_TOUCH_Driver/Inc</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../Drivers/F4_LCD_Driver/Inc;../Drivers/F4_TOUCH_Driver/Inc;../Drivers/F4_W24Q128_Driver/Inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -422,6 +422,21 @@
               <FileName>base.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Core\Src\base.c</FilePath>
+            </File>
+            <File>
+              <FileName>dac.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\dac.c</FilePath>
+            </File>
+            <File>
+              <FileName>spi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\spi.c</FilePath>
+            </File>
+            <File>
+              <FileName>tim.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\tim.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -533,6 +548,11 @@
               <FileType>1</FileType>
               <FilePath>..\Drivers\F4_LCD_Driver\Src\lcd.c</FilePath>
             </File>
+            <File>
+              <FileName>text.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\F4_LCD_Driver\Src\text.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -552,6 +572,16 @@
               <FileName>touch.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Drivers\F4_TOUCH_Driver\Src\touch.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Drivers/F4_W25QXX_Driver</GroupName>
+          <Files>
+            <File>
+              <FileName>w25qxx.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\F4_W24Q128_Driver\Src\w25qxx.c</FilePath>
             </File>
           </Files>
         </Group>

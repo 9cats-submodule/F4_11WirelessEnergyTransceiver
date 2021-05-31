@@ -64,6 +64,8 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 extern uint16_t TP_PRES_TIME;
+extern uint16_t Amplitude;
+extern uint32_t ARR;
 /* USER CODE END 0 */
 
 /**
@@ -73,7 +75,9 @@ extern uint16_t TP_PRES_TIME;
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+  u16 ct=0;
+  u16 P_Amplitude = 0;
+  u32 P_ARR       = 0;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -97,27 +101,53 @@ int main(void)
   MX_FSMC_Init();
   MX_DAC_Init();
   MX_TIM7_Init();
-  MX_TIM3_Init();
   MX_SPI1_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   delay_init(168);
   HAL_DAC_Start(&hdac,DAC1_CHANNEL_1);
-  HAL_TIM_Base_Start_IT(&htim3);
+  HAL_TIM_Base_Start_IT(&htim2);
   HAL_TIM_Base_Start_IT(&htim7);
   W25QXX_Init();
   LCD_Init();
   font_init();
   tp_dev.init();
 
-  POINT_COLOR=RED;
-  LCD_ShowString(30,40,210,24,24,(uint8_t *)"MINI STM32F4");
-  LCD_ShowString(30,70,200,16,16,(uint8_t *)"TFTLCD TEST");
-  LCD_ShowString(30,90,200,16,16,(uint8_t *)"ATOM@ALIENTEK");
-  LCD_ShowString(30,110,200,16,16,(uint8_t *)"The First Test");
-  LCD_ShowString(30,130,200,12,12,(uint8_t *)"2021/4/8");
-  Show_Str_Mid(30, 150, "黄河彭牛逼！", 16, 30);
+  Amplitude = 2023;
+  ARR= 944;
+  P_Amplitude = Amplitude;
+  P_ARR = ARR;
 
-  /* USER CODE END 2 */
+  POINT_COLOR=RED;
+
+  Show_Str_Mid(20, 10,  (uint8_t *)"无线能量传输装置", 24, 20);
+  Show_Str_Mid(56, 40,  (uint8_t *)"信号源部分", 24, 20);
+  Show_Str_Mid(48, 80,  (uint8_t *)"频率:   .    KHz", 16, 20);
+  Show_Str_Mid(48, 100, (uint8_t *)"幅值:        mV", 16, 20);
+  Show_Str_Mid(52, 140, (uint8_t *)"自动装载值:", 16, 20);
+  Show_Str_Mid(52, 180, (uint8_t *)" DA输出值 :", 16, 20);
+
+
+  LCD_ShowNum(88,  80, 84000000/ARR/1000, 3, 16);
+  LCD_ShowNum(120, 80, 84000000/ARR%1000, 3, 16);
+  LCD_ShowNum(108, 100, Amplitude*3300/4096, 3, 16);
+  LCD_ShowNum(150, 140, ARR, 4, 16);
+  LCD_ShowNum(150, 180, Amplitude, 4, 16);
+
+  ct = 140;
+  LCD_Fill( 28,   ct,  48, ct+16, GRAY);
+  LCD_Fill( 32, ct+8,  44,  ct+9, GREEN);
+  LCD_Fill(192,   ct, 212, ct+16, GRAY);
+  LCD_Fill(196, ct+8, 208,  ct+9, RED);
+  LCD_Fill(202, ct+4, 203, ct+12, RED);
+
+  ct = 180;
+  LCD_Fill( 28,   ct,  48, ct+16, GRAY);
+  LCD_Fill( 32, ct+8,  44,  ct+9, GREEN);
+  LCD_Fill(192,   ct, 212, ct+16, GRAY);
+  LCD_Fill(196, ct+8, 208,  ct+9, RED);
+  LCD_Fill(202, ct+4, 203, ct+12, RED);
+/* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -130,14 +160,32 @@ int main(void)
 	tp_dev.scan(0);
 	if(tp_dev.sta & TP_PRES_DOWN)
 	{
-
+//		HAL_TIM_Base_DeInit
+//		HAL_TIM_Base_MspDeInit
 	  if(TP_PRES_TIME == 0 || (TP_PRES_TIME > 200 && TP_PRES_TIME%20 == 0))
 	  {
 		tp_dev.sta |= TP_PRES_FACK;		//标记已经开始响应第一次触碰事件
-		DAC->DHR12R1 = 4095;
-//        if(TP_CHECK(28,40,48,56)){
-//          DAC_FRE = DAC_FRE==1?1:DAC_FRE-1;
-//        }
+
+		if(TP_CHECK(28,140,48,156))
+		{
+		  ARR = ARR<=50?ARR:ARR-1;
+		  LCD_ShowNum(150, 140, ARR, 4, 16);
+		}
+		if(TP_CHECK(192,140,212,156))
+		{
+		  ARR = ARR>=1000?ARR:ARR+1;
+		  LCD_ShowNum(150, 140, ARR, 4, 16);
+		}
+		if(TP_CHECK(28,180,48,196))
+		{
+		  Amplitude = Amplitude==0?0:Amplitude-1;
+		  LCD_ShowNum(150, 180, Amplitude, 4, 16);
+		}
+		if(TP_CHECK(192,180,212,156))
+		{
+		  Amplitude = Amplitude==4095?4095:Amplitude+1;
+		  LCD_ShowNum(150, 180, Amplitude, 4, 16);
+		}
 
 	  }
 	}
@@ -146,7 +194,17 @@ int main(void)
 	  //if(tp_dev.sta & TP_PRES_FACK){}
 	  TP_PRES_TIME = 0;
 	  tp_dev.sta  &= ~TP_PRES_FACK;
-	  DAC->DHR12R1 = 0;
+
+	  if(P_Amplitude != Amplitude)
+	  {
+		P_Amplitude = Amplitude;
+		LCD_ShowNum(150, 180, Amplitude, 4, 16);
+	  }
+	  if(P_ARR != ARR)
+	  {
+		P_ARR = ARR;
+		LCD_ShowNum(150, 140, ARR, 4, 16);
+	  }
 	}
   }
   /* USER CODE END 3 */
